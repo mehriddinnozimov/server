@@ -3,7 +3,7 @@ import { stringEvery } from "../helper"
 
 const allowed = {
     method: [ "GET", "POST", "PUT", "PATCH", "DELETE" ],
-    contentType: [ 'application/json', 'text/plain', 'multipart/form-data' ],
+    contentType: [ 'application/json', 'application/javascript', 'text/plain', 'text/html', 'multipart/form-data' ],
 } as const
 
 type Method = typeof allowed.method[number]
@@ -31,8 +31,8 @@ export default class Request {
     }
 
     async json() {
-        this.headersToJSON()
-        await this.bodyToJSON()
+        this.headersParser()
+        await this.bodyParser()
     }
 
     private async collectData () {
@@ -45,12 +45,72 @@ export default class Request {
         return data
     }
 
-    private headersToJSON() {
+    private parseJSON(data: string) {
+        this.body = JSON.parse(data)
+    }
+
+    private parseText(data: string) {
+        this.body = data
+    }
+
+    private parseJavascript(data: string) {
+        this.body = () => eval(data)
+    }
+
+    private parseFormData(data: string) {
+        const boundary = this.headers.contentType.split('=')[1]
+
+        //rasvo xato
+        const parts = data.split(`--${boundary}`)
+
+        for(let part of parts) {
+            const checkPart = part.trim()
+            if(checkPart.length !== 0 && !stringEvery(checkPart, checkPart[0])) {
+                let lines = part.split(/\r?\n/)
+                let contentDisposition = ''
+                let contentType = ''
+
+                const contentDispositionIndex = lines.findIndex(line => line.startsWith('Content-Disposition'))
+                const contentTypeIndex = lines.findIndex(line => line.startsWith('Content-Type'))
+
+                if(contentDispositionIndex > -1) {
+                    contentDisposition = lines[contentDispositionIndex]
+                }
+                if(contentTypeIndex > -1) {
+                    contentType = lines[contentTypeIndex]
+                }
+                lines = lines.filter((line, index) =>  index !== contentTypeIndex && index !== contentDispositionIndex).slice(1, -1)
+
+                let data = ''
+                if(lines.length > 1) {
+                    for(let line of lines) {
+                        data += `${line}\n`
+                    }
+                }
+                const [ _, nameKey, filenameKey ] = contentDisposition.split(";")
+                const name = nameKey.split("=")[1].slice(1, -1)
+                if(filenameKey) {
+                    const buffer = Buffer.from(data)
+                    const file = {
+                        filename: filenameKey.split("=")[1].slice(1, -1),
+                        size: data.length,
+                        data
+                    }
+                    this.file = buffer
+                    this.body[name] = file
+                } else {
+                    this.body[name] = data
+                }
+            }
+        }
+    }
+
+    private headersParser() {
         this.headers.contentType = this._req.headers['content-type'] as ContentType || 'application/json'
         this.headers.contentLength = this._req.headers['content-length'] || '0'
     }
 
-    private async bodyToJSON() {
+    private async bodyParser() {
         const { headers, method } = this
         const { contentType } = headers
         if(contentType.length === 0) return;
@@ -62,58 +122,24 @@ export default class Request {
         const data = await this.collectData()
 
         if(contentType === 'application/json') {
-            this.body = JSON.parse(data)
+            this.parseJSON(data)
         } else
         if(contentType === 'text/plain') {
-            this.body = data
+            this.parseText(data)
         } else
         if(contentType.startsWith('multipart/form-data')) {
-            const boundary = headers.contentType.split('=')[1]
+            this.parseFormData(data)
+        } else 
+        if(contentType === 'application/javascript') {
+            this.parseJavascript(data)
+        } else
+        if(contentType === 'text/html') {
+            this.parseText(data)
+        }
 
-            //rasvo xato
-            const parts = data.split(`--${boundary}`)
 
-            for(let part of parts) {
-                const checkPart = part.trim()
-                if(checkPart.length !== 0 && !stringEvery(checkPart, checkPart[0])) {
-
-                    let lines = part.split(/\r?\n/)
-                    let contentDisposition = ''
-                    let contentType = ''
-
-                    const contentDispositionIndex = lines.findIndex(line => line.startsWith('Content-Disposition'))
-                    const contentTypeIndex = lines.findIndex(line => line.startsWith('Content-Type'))
-
-                    if(contentDispositionIndex > -1) {
-                        contentDisposition = lines[contentDispositionIndex]
-                    }
-                    if(contentTypeIndex > -1) {
-                        contentType = lines[contentTypeIndex]
-                    }
-                    lines = lines.filter((line, index) =>  index !== contentTypeIndex && index !== contentDispositionIndex).slice(1, -1)
-
-                    let data = ''
-                    if(lines.length > 1) {
-                        for(let line of lines) {
-                            data += `${line}\n`
-                        }
-                    }
-                    const [ _, nameKey, filenameKey ] = contentDisposition.split(";")
-                    const name = nameKey.split("=")[1].slice(1, -1)
-                    if(filenameKey) {
-                        const buffer = Buffer.from(data)
-                        const file = {
-                            filename: filenameKey.split("=")[1].slice(1, -1),
-                            size: data.length,
-                            data
-                        }
-                        this.file = buffer
-                        this.body[name] = file
-                    } else {
-                        this.body[name] = data
-                    }
-                }
-            }
+        else {
+            throw new Error("Unespected content-type")
         }
     }
 }
