@@ -54,7 +54,7 @@ export default class Request {
     }
 
     private parseJavascript(data: string) {
-        this.body = () => eval(data)
+        this.body = function() { return eval(data) }
     }
 
     private parseFormData(data: string) {
