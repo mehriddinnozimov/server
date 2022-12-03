@@ -12,6 +12,7 @@ export default class Request {
     body: any = {}
     method?: Method
     file?: Buffer
+    url?: string
     headers: Headers = {
         contentType: 'application/json',
         contentLength: '0'
@@ -19,6 +20,7 @@ export default class Request {
 
     constructor(private readonly _req: IncomingMessage) {
         this.method = _req.method as Method
+        this.url = _req.url
     }
 
     async json() {
@@ -105,7 +107,7 @@ export default class Request {
     private async bodyParser() {
         const { headers, method } = this
         const { contentType } = headers
-        
+
         if(contentType.length === 0) return;
         if(!method || method === 'GET') return;
 
