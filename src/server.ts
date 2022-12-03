@@ -7,9 +7,10 @@ server.use((req, res, next) => {
     next()
 })
 
-server.use((req, res, next) => {
-    console.log(req.url)
-    next()
+server.use('/url', (req, res, next) => {
+    console.log('match')
+    console.log(next)
+    res.json({ ok: true })
 })
 
 server.use((req, res) => {
