@@ -2,9 +2,18 @@ import { Server } from "./core";
 
 const server = new Server()
 
-server.use((req, res) => {
+server.use((req, res, next) => {
     console.log(req.body)
-    res.status(200).json(req.body)
+    next()
+})
+
+server.use((req, res, next) => {
+    console.log(1)
+    next()
+})
+
+server.use((req, res) => {
+    res.json({ ok: true })
 })
 
 server.listen(3000, (port) => {

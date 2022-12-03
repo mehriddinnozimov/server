@@ -2,7 +2,7 @@ import { IncomingMessage, ServerResponse, createServer } from "http";
 import Request from "./request";
 import { Response } from "./response";
 
-type NextFunction = (req: Request, res: Response, next?: NextFunction) => void
+type NextFunction = (req: Request, res: Response, next: () => void) => void
 
 export class Server {
     private app;
