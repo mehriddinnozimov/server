@@ -4,7 +4,7 @@ const server = new Server()
 
 server.use((req, res) => {
     console.log(req.body)
-    res.status(404).json(req.body)
+    res.status(200).json(req.body)
 })
 
 server.listen(3000, (port) => {
