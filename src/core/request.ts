@@ -1,11 +1,11 @@
-import { IncomingMessage } from "http"
+import { IncomingHttpHeaders, IncomingMessage } from "http"
 import { stringEvery } from "./helper"
 import { ContentType, Method } from "./types"
 
-interface Headers {
+interface Headers extends IncomingHttpHeaders {
     contentType: ContentType
     contentLength: string
-    [key: string]: string
+    [key: string | number | symbol]: string | string[] | undefined
 }
 
 export default class Request {
@@ -97,6 +97,7 @@ export default class Request {
     }
 
     private headersParser() {
+        Object.assign(this.headers, this._req.headers)
         this.headers.contentType = this._req.headers['content-type'] as ContentType || 'application/json'
         this.headers.contentLength = this._req.headers['content-length'] || '0'
     }

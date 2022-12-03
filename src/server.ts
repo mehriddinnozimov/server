@@ -8,7 +8,7 @@ server.use((req, res, next) => {
 })
 
 server.use((req, res, next) => {
-    console.log(1)
+    console.log(req.headers)
     next()
 })
 
