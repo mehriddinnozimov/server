@@ -1,5 +1,5 @@
 import { IncomingMessage } from "http"
-import { stringEvery } from "../helper"
+import { stringEvery } from "./helper"
 
 const allowed = {
     method: [ "GET", "POST", "PUT", "PATCH", "DELETE" ],

@@ -1,22 +1,12 @@
-import http from 'http'
-import Request from './core/request'
+import { Server } from "./core";
 
-const server = http.createServer(async (req, res) => {
-    try {
-        const request = new Request(req)
-        await request.json()
+const server = new Server()
 
-        console.log(request.headers)
-
-        console.log(request.body)
-
-        res.end('ok')
-    } catch (err) {
-        console.log(err)
-
-        res.end('false')
-    }
-
+server.use((req, res) => {
+    console.log(req.body)
+    res.status(404).json(req.body)
 })
 
-server.listen(3000)
+server.listen(3000, (port) => {
+    console.log(port)
+})
