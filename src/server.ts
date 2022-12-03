@@ -13,7 +13,7 @@ server.use((req, res, next) => {
 })
 
 server.use((req, res) => {
-    res.json({ ok: true })
+    res.json(req.body)
 })
 
 server.listen(3000, (port) => {
