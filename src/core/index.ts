@@ -39,11 +39,14 @@ export class Server {
     public use(path: NextFunction | string, ...fns: NextFunction[]) {
         if(typeof path === 'string' && Array.isArray(fns) &&  fns.every(fn => typeof fn === 'function')) {
 
-            const fn = (req: Request, res: Response) => {
+            const fn = (req: Request, res: Response, next: () => void) => {
                 if(path === req.url) {
+                    console.log(this.queue_index, this.queue)
                     fns = [...fns, ...this.queue.slice(this.queue_index)]
                     const fn = this.driver(req, res, fns.shift(), fns)
                     fn()
+                } else {
+                    next()
                 }
             }
             this.queue.push(fn)
