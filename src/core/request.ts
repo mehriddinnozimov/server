@@ -1,13 +1,6 @@
 import { IncomingMessage } from "http"
 import { stringEvery } from "./helper"
-
-const allowed = {
-    method: [ "GET", "POST", "PUT", "PATCH", "DELETE" ],
-    contentType: [ 'application/json', 'application/javascript', 'text/plain', 'text/html', 'multipart/form-data' ],
-} as const
-
-type Method = typeof allowed.method[number]
-type ContentType = typeof allowed.contentType[number]
+import { ContentType, Method } from "./types"
 
 interface Headers {
     contentType: ContentType
@@ -25,8 +18,6 @@ export default class Request {
     }
 
     constructor(private readonly _req: IncomingMessage) {
-        if(!_req) throw new Error("Missing argument.")
-
         this.method = _req.method as Method
     }
 
