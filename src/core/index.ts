@@ -9,14 +9,16 @@ export class Server {
     private queue: NextFunction[] = []
     private temp_queue: NextFunction[] = []
 
+    request?: Request
+    response?: Response
     constructor(){
         this.app = createServer(async (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
             this.temp_queue = [...this.queue]
-            const request = new Request(req)
-            const response = new Response(res)
-            await request.json()
+            this.request = new Request(req)
+            this.response = new Response(res)
+            await this.request.json()
 
-            const fn = this.driver(request, response, this.temp_queue.shift())
+            const fn = this.driver(this.request, this.response, this.temp_queue.shift())
             fn()
         })
     }
@@ -35,7 +37,12 @@ export class Server {
         if(fn) fn(port)
     }
 
-    public use(...fns: NextFunction[]) {
-        this.queue = [...this.queue, ...fns]
+    public use(path: NextFunction | string, ...fns: NextFunction[]) {
+        if(typeof path === 'string') {
+            // code for url path
+        } else {
+            this.queue = [...this.queue, path, ...fns]
+        }
+
     }
 }
