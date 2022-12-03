@@ -105,11 +105,9 @@ export default class Request {
     private async bodyParser() {
         const { headers, method } = this
         const { contentType } = headers
+        
         if(contentType.length === 0) return;
-
-
         if(!method || method === 'GET') return;
-
 
         const data = await this.collectData()
 
