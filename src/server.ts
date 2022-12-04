@@ -2,20 +2,21 @@ import { Server } from "./core";
 
 const server = new Server()
 
-server.use((req, res, next) => {
-    console.log(req.headers)
-    next()
+server.use( async (req, res) => {
+    console.log(1)
 })
 
-server.use('/url', (req, res, next) => {
-    console.log('match')
-    console.log(next)
+server.get('/', (req, res) => {
     res.json({ ok: true })
 })
 
-server.use((req, res) => {
+server.post('/url', (req, res) => {
     console.log(req.body)
     res.json(req.body)
+})
+
+server.use('*', (req, res) => {
+    res.json({ everything: "*" })
 })
 
 server.listen(3000, (port) => {

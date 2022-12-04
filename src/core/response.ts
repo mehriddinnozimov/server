@@ -6,7 +6,7 @@ type Headers  = {
 } & Status
 
 
-export class Response {
+export default class Response {
     private headers: Headers = {
         contentType: 'text/plain',
         statusCode: 200,
@@ -36,6 +36,7 @@ export class Response {
         this._res.setHeader('Status', `${statusCode} ${statusMessage}`)
 
         if(typeof data !== 'string') data = String(data)
-        this._res.end(data)
+        this._res.write(data)
+        this._res.end()
     }
 }
