@@ -1,12 +1,12 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { ContentType, Status, status } from "./types";
+import { ContentType, Status, status } from "../types";
 
 type Headers  = {
     contentType: ContentType
 } & Status
 
 
-export default class Response {
+export class Response {
     private headers: Headers = {
         contentType: 'text/plain',
         statusCode: 200,

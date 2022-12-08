@@ -1,6 +1,10 @@
-import { IncomingHttpHeaders, IncomingMessage } from "http"
+import http, { IncomingHttpHeaders, IncomingMessage } from "http"
+import url from 'url';
+import * as querystring from "querystring";
+
 import { stringEvery } from "./helper"
-import { ContentType, Method } from "./types"
+import { ContentType, Method } from "../types"
+
 
 interface Headers extends IncomingHttpHeaders {
     contentType: ContentType
@@ -8,11 +12,14 @@ interface Headers extends IncomingHttpHeaders {
     [key: string | number | symbol]: string | string[] | undefined
 }
 
-export default class Request {
+export class Request {
     body: any = {}
     method?: Method
     file?: Buffer
     url?: string
+    urlParsed?: url.UrlWithParsedQuery | url.UrlWithStringQuery
+    query: { [key: string]: string } = {}
+    params: { [key: string]: string } = {}
     headers: Headers = {
         contentType: 'application/json',
         contentLength: '0'
@@ -20,11 +27,12 @@ export default class Request {
 
     constructor(private readonly _req: IncomingMessage) {
         this.method = _req.method as Method
-        this.url = _req.url
+        this.urlParser()
     }
 
     async json() {
         this.headersParser()
+        this.queryParser()
         await this.bodyParser()
     }
 
@@ -104,6 +112,32 @@ export default class Request {
         this.headers.contentLength = this._req.headers['content-length'] || '0'
     }
 
+    public urlParser(newUrl?: string) {
+        this.url = newUrl || this._req.url || '/'
+        if(this.url) this.urlParsed = url.parse(this.url, true, true)
+    }
+
+    public paramsParser(path: `/${string}`) {
+        if(!this.url) throw new Error("URL is required")
+
+        const urlPaths = this.url.split('/')
+        const paths = path.split('/')
+        paths.forEach((path, index) => {
+            if(path[0] === ':') {
+                this.params[path.slice(1)] = urlPaths[index]
+            }
+        })
+    }
+
+    private queryParser() {
+        if(!this.url) throw new Error("URL is required")
+        const queries = this.url.split('?')[1].split('&')
+        queries.forEach(keyAndValue => {
+            const [ key, value ] = keyAndValue.split('=')
+            this.query[key] = value
+        })
+    }
+
     private async bodyParser() {
         const { headers, method } = this
         const { contentType } = headers
@@ -128,8 +162,6 @@ export default class Request {
         if(contentType === 'text/html') {
             this.parseText(data)
         }
-
-
         else {
             throw new Error("Unespected content-type")
         }
