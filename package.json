@@ -13,5 +13,8 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^18.11.9"
+  },
+  "dependencies": {
+    "socket.io": "^4.5.4"
   }
 }

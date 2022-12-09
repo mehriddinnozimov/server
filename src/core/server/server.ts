@@ -1,5 +1,6 @@
 import { IncomingMessage, ServerResponse, createServer } from "http";
 import { Request, Response, Router } from ".";
+import { WS } from "./ws";
 
 export class Server extends Router {
     private _app;
@@ -26,5 +27,10 @@ export class Server extends Router {
         this._app.listen(port)
 
         if(fn) fn(port)
+    }
+
+    public websocket() {
+        const ws = new WS(this._app)
+        
     }
 }
