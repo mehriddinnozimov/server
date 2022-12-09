@@ -24,7 +24,7 @@ export class Router {
     public get(path: Path, fn: ServerFunction) {
         this.queue.push((req: Request, res: Response) => {
             if(path !== '*') req.paramsParser(path);
-            if(req.method === 'GET' && this.checkUrl(path, req.urlParsed?.pathname)) {
+            if(req.method === 'GET' && this.checkUrl(path, req.urlname)) {
                 fn(req, res)
                 return true
             }
@@ -34,7 +34,7 @@ export class Router {
     public post(path: Path, fn: ServerFunction) {
         this.queue.push((req: Request, res: Response) => {
             if(path !== '*') req.paramsParser(path);
-            if(req.method === 'POST' && this.checkUrl( path, req.urlParsed?.pathname)) {
+            if(req.method === 'POST' && this.checkUrl( path, req.urlname)) {
                 fn(req, res)
                 return true
             }
@@ -44,7 +44,7 @@ export class Router {
     public put(path: Path, fn: ServerFunction) {
         this.queue.push((req: Request, res: Response) => {
             if(path !== '*') req.paramsParser(path);
-            if(req.method === 'PUT' && this.checkUrl(path, req.urlParsed?.pathname)) {
+            if(req.method === 'PUT' && this.checkUrl(path, req.urlname)) {
                 fn(req, res)
                 return true
             }
@@ -54,7 +54,7 @@ export class Router {
     public patch(path: Path, fn: ServerFunction) {
         this.queue.push((req: Request, res: Response) => {
             if(path !== '*') req.paramsParser(path);
-            if(req.method === 'PATCH' && this.checkUrl(path, req.urlParsed?.pathname)) {
+            if(req.method === 'PATCH' && this.checkUrl(path, req.urlname)) {
                 fn(req, res)
                 return true
             }
@@ -64,7 +64,7 @@ export class Router {
     public delete(path: Path, fn: ServerFunction) {
         this.queue.push((req: Request, res: Response) => {
             if(path !== '*') req.paramsParser(path);
-            if(req.method === 'DELETE' && this.checkUrl(path, req.urlParsed?.pathname)) {
+            if(req.method === 'DELETE' && this.checkUrl(path, req.urlname)) {
                 fn(req, res)
                 return true
             }
@@ -75,8 +75,7 @@ export class Router {
         if(typeof path === 'string') {
             this.queue.push(async (req: Request, res: Response) => {
                 if(path !== '*') req.paramsParser(path);
-                const newUrl = this.checkUrl(path, req.urlParsed?.pathname)
-                
+                const newUrl = this.checkUrl(path, req.urlname)
                 if(typeof newUrl === 'string') {
                     if(typeof fn === 'function') {
                         return fn(req, res)

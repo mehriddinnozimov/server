@@ -1,5 +1,6 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { ContentType, Status, status } from "../types";
+import { ContentType, exts, Exts, Status, status } from "../types";
+import { getFile } from "./helper";
 
 type Headers  = {
     contentType: ContentType
@@ -38,5 +39,15 @@ export class Response {
         if(typeof data !== 'string') data = String(data)
         this._res.write(data)
         this._res.end()
+    }
+
+    async sendFile(path: string): Promise<void | true> {
+        const buffer = await getFile(path)
+        const ext = (path.split('.').splice(-1)[0] || 'default') as Exts
+        if(!buffer) return;
+        const contentType = exts[ext] || exts['default']
+        this.headers.contentType = contentType
+        this.send(buffer)
+        return true
     }
 }

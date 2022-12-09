@@ -1,3 +1,4 @@
+import { writeFileSync } from "fs";
 import { Server, Router, Request, Response } from "./core";
 
 
@@ -5,29 +6,44 @@ const server = new Server()
 
 const router = new Router()
 
-// router.post('/:id1/status/:id2', (req, res) => {
-//     console.log('params', req.params)
-//     console.log('body', req.body)
-//     console.log('query', req.query)
-//     res.json({ router: true })
-// })
+server.static(__dirname + '/static')
+
+router.post('/:id1/status/:id2', (req, res) => {
+    console.log('params', req.params)
+    console.log('body', req.body)
+    console.log('query', req.query)
+    console.log('file', req.file)
+    if(!req.file) throw new Error('file is required')
+    writeFileSync(__dirname + '/' + req.file.originalname, req.file.buffer)
+    res.json({ router: true })
+})
+
+router.get('/', (req, res) => {
+    console.log('router get')
+    res.json({ get: true })
+})
 
 
-// server.use( async (req, res) => {
-//     console.log(1, 'use')
-// })
+server.use( async (req, res) => {
+    console.log(1, 'use')
+    
+})
 
-// server.use('/router', router)
+server.use('/router', router)
 
-// server.get('/', (req, res) => {
-//     res.json({ ok: true })
-// })
+server.get('/', (req, res) => {
+    console.log(123)
+    res.status(201).sendFile(__dirname + '/static/tsconfig.json')
+})
 
-// server.post('/url', (req, res) => {
-//     res.json(req.body)
-// })
+server.get('/some', (req, res) => {
+    console.log(123)
+    res.sendFile(__dirname + '/static/tsconfig.json')
+})
 
-server.websocket()
+server.post('/url', (req, res) => {
+    res.json(req.body)
+})
 
 server.use('*', (req, res) => {
     res.json({ everything: "*" })

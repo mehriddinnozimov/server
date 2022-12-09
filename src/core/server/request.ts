@@ -1,10 +1,6 @@
-import http, { IncomingHttpHeaders, IncomingMessage } from "http"
-import url from 'url';
-import * as querystring from "querystring";
-
+import { IncomingHttpHeaders, IncomingMessage } from "http"
 import { stringEvery } from "./helper"
 import { ContentType, Method } from "../types"
-
 
 interface Headers extends IncomingHttpHeaders {
     contentType: ContentType
@@ -15,9 +11,15 @@ interface Headers extends IncomingHttpHeaders {
 export class Request {
     body: any = {}
     method?: Method
-    file?: Buffer
+    file?: {
+        filename: string,
+        originalname: string,
+        size: number,
+        buffer: Buffer,
+        ext: string
+    }
     url?: string
-    urlParsed?: url.UrlWithParsedQuery | url.UrlWithStringQuery
+    urlname?: string
     query: { [key: string]: string } = {}
     params: { [key: string]: string } = {}
     headers: Headers = {
@@ -80,25 +82,28 @@ export class Request {
                 if(contentTypeIndex > -1) {
                     contentType = lines[contentTypeIndex]
                 }
-                lines = lines.filter((line, index) =>  index !== contentTypeIndex && index !== contentDispositionIndex).slice(1, -1)
 
+                lines = lines.filter((line, index) =>  index !== contentTypeIndex && index !== contentDispositionIndex).slice(1, -1)
                 let data = ''
-                if(lines.length > 1) {
-                    for(let line of lines) {
-                        data += `${line}\n`
-                    }
+                if(lines[0].length === 0) lines.shift()
+                if(lines[lines.length -1].length === 0) lines.pop()
+                for(let index = 0; index < lines.length; index++) {
+                    data += index + 1 < lines.length ? `${lines[index]}\n` : lines[index]
                 }
+
                 const [ _, nameKey, filenameKey ] = contentDisposition.split(";")
                 const name = nameKey.split("=")[1].slice(1, -1)
                 if(filenameKey) {
-                    const buffer = Buffer.from(data)
-                    const file = {
-                        filename: filenameKey.split("=")[1].slice(1, -1),
+                    const originalname = filenameKey.split("=")[1].slice(1, -1)
+                    const filename = originalname.split('.').slice(0, -1).join('')
+                    const ext = originalname.split('.').slice(-1)[0]
+                    this.file = {
+                        filename,
+                        originalname,
+                        ext,
                         size: data.length,
-                        data
+                        buffer: Buffer.from(data)
                     }
-                    this.file = buffer
-                    this.body[name] = file
                 } else {
                     this.body[name] = data
                 }
@@ -114,7 +119,7 @@ export class Request {
 
     public urlParser(newUrl?: string) {
         this.url = newUrl || this._req.url || '/'
-        if(this.url) this.urlParsed = url.parse(this.url, true, true)
+        this.urlname = this.url.split('?')[0]
     }
 
     public paramsParser(path: `/${string}`) {
@@ -131,8 +136,8 @@ export class Request {
 
     private queryParser() {
         if(!this.url) throw new Error("URL is required")
-        const queries = this.url.split('?')[1].split('&')
-        queries.forEach(keyAndValue => {
+        const queries = this.url.split('?')[1]?.split('&')
+        queries?.forEach(keyAndValue => {
             const [ key, value ] = keyAndValue.split('=')
             this.query[key] = value
         })

@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse, createServer } from "http";
+import { join } from "path";
 import { Request, Response, Router } from ".";
-import { WS } from "./ws";
 
 export class Server extends Router {
     private _app;
@@ -8,7 +8,6 @@ export class Server extends Router {
     constructor(){
         super()
         this._app = createServer(async (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
-
             const request = new Request(req)
             const response = new Response(res)
             await request.json()
@@ -29,8 +28,12 @@ export class Server extends Router {
         if(fn) fn(port)
     }
 
-    public websocket() {
-        const ws = new WS(this._app)
-        
+    public static(path: string) {
+        this.queue.push(async (req, res) => {
+            if(!req.url) throw new Error("URL is required")
+            if(req.method === 'GET') {
+                return await res.sendFile(join(path, req.url))
+            }
+        })
     }
 }
