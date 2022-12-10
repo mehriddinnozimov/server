@@ -3,10 +3,23 @@ import { Server, Router, Request, Response } from "./core";
 
 
 const server = new Server()
-
+const ws = server.websocket()
 const router = new Router()
 
 server.static(__dirname + '/static')
+
+
+const sockets: string[] = []
+
+
+ws.on('connection', (socket) => {
+    sockets.push(socket.uid)
+    console.log(socket.uid)
+    socket.on('data', (data) => {
+        console.log(data)
+    })
+    socket.emit('message', { isMessage: true })
+})
 
 router.post('/:id1/status/:id2', (req, res) => {
     console.log('params', req.params)
@@ -46,6 +59,7 @@ server.post('/url', (req, res) => {
 })
 
 server.use('*', (req, res) => {
+    console.log('everything')
     res.json({ everything: "*" })
 })
 

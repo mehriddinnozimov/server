@@ -1,6 +1,7 @@
 import { IncomingMessage, ServerResponse, createServer } from "http";
 import { join } from "path";
 import { Request, Response, Router } from ".";
+import { WS } from "./ws";
 
 export class Server extends Router {
     private _app;
@@ -35,5 +36,10 @@ export class Server extends Router {
                 return await res.sendFile(join(path, req.url))
             }
         })
+    }
+
+    public websocket() {
+        this.isSocketOn = true
+        return new WS(this._app)
     }
 }

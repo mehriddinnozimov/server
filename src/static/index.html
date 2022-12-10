@@ -2,36 +2,22 @@
     <body>
         <h1>Messages</h1>
         <output id="output"></output>
-
+        <script src="/ws_client.js"></script>
         <script>
-            const output = document.getElementById('output')
+            const ws = new WS('ws://localhost:3000')
 
-            const socket = new WebSocket('ws://localhost:3000')
+            ws.on('error', (error) => {
+                console.log(error)
+            })
 
-            socket.onopen = (event) => {
-                console.log('Open', event)
-                const id = Math.round(Math.random() * 10000000)
-                console.log('Sending', id)
-                const data = JSON.stringify({
-                    id,
-                    name: "Mehriddin"
-                })
+            ws.on('message', (data) => {
+                console.log(data)
+                console.log(ws)
 
-                socket.send(data)
+                ws.emit('sendAllUser', 'hey')
+            })
 
-            }
-
-            socket.onmessage = (message) => {
-                console.log('Message', message)
-            }
-
-            socket.onclose = (event) => {
-                console.log('Close', event)
-            }
-
-            socket.onerror = (error) => {
-                console.log('Error', error)
-            }
+            ws.emit('data', 'hello')
         </script>
     </body>
 </html>

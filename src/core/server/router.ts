@@ -5,12 +5,13 @@ type Path = `/${string}` | '*'
 
 export class Router {
     public readonly queue: ServerFunction[] = []
-
+    protected isSocketOn = false
     constructor() {}
 
     private checkUrl(path: Path, url?: string | null) {
         if(!url) return null
-        if(path === '*') return url
+        console.log(url)
+        if(path === '*' && !(this.isSocketOn && url === '/ws_client.js')) return url
 
         const paths = path.split('/')
         const urlPaths = url.split('/')
