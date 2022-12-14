@@ -83,7 +83,6 @@ export class Router {
                     } else
                     if(fn instanceof Router) {
                         req.urlParser(newUrl)
-
                         const fns = fn
                         for(let fn of fns.queue) {
                             const result = await fn(req, res)

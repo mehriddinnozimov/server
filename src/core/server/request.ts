@@ -29,6 +29,7 @@ export class Request {
 
     constructor(private readonly _req: IncomingMessage) {
         this.method = _req.method as Method
+        this.url = _req.url
         this.urlParser()
     }
 
@@ -118,8 +119,8 @@ export class Request {
     }
 
     public urlParser(newUrl?: string) {
-        this.url = newUrl || this._req.url || '/'
-        this.urlname = this.url.split('?')[0]
+        let url = newUrl || this.url || '/'
+        this.urlname = url.split('?')[0]
     }
 
     public paramsParser(path: `/${string}`) {

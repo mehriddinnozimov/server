@@ -13,9 +13,14 @@ export class Server extends Router {
             const response = new Response(res)
             await request.json()
 
-            for(let fn of this.queue) {
-                const result = await fn(request, response)
-                if(result === true) break;
+            for(let i = 0; i <= this.queue.length; i++) {
+                if(i === this.queue.length) {
+                    response.status(404).send(`Cannot ${request.method} ${request.url}`)
+                } else {
+                    let fn = this.queue[i]
+                    let result = await fn(request, response)
+                    if(result === true) break;
+                }
             }
         })
     }
